@@ -1,10 +1,13 @@
 import express from "express";
+import cors from "cors"
 import { prismaClient } from "db/client";
 import { v4 as uuidv4 } from "uuid";
 
 const app = express();
 
+
 app.use(express.json());
+app.use(cors())
 
 app.get("/employee", async (req, res) => {
 
@@ -133,4 +136,4 @@ app.post("/plant", async (req, res) => {
     }
 })
 
-app.listen(3000);
+app.listen(3001);
