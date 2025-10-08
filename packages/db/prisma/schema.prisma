@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -15,98 +9,97 @@ datasource db {
 }
 
 model Employee {
-  id        String   @id @default(uuid())
-  name      String
-  role      String
-  scans     Scan[]
+  id    String @id @default(uuid())
+  name  String
+  role  String
+  scans Scan[]
 }
 
 model Plant {
-  id        String   @id @default(uuid())
+  id        String       @id @default(uuid())
   name      String
   location  String?
   latitude  Float?
   longitude Float?
-  depots    DepotPlant[]   // many-to-many relation via DepotPlant
   boxes     Box[]
+  depots    DepotPlant[]
 }
 
 model Depot {
-  id          String   @id @default(uuid())
-  name        String
-  location    String?
-  latitude    Float?
-  longitude   Float?
+  id           String        @id @default(uuid())
+  name         String
+  location     String?
+  latitude     Float?
+  longitude    Float?
+  plants       DepotPlant[]
   distributors Distributor[]
-  plants      DepotPlant[]   // many-to-many relation via DepotPlant
 }
 
 model DepotPlant {
-  id        String   @id @default(uuid())
-  plantId   String
-  depotId   String
-  plant     Plant @relation(fields: [plantId], references: [id], onDelete: Cascade)
-  depot     Depot @relation(fields: [depotId], references: [id], onDelete: Cascade)
+  id      String @id @default(uuid())
+  plantId String
+  depotId String
+  depot   Depot  @relation(fields: [depotId], references: [id], onDelete: Cascade)
+  plant   Plant  @relation(fields: [plantId], references: [id], onDelete: Cascade)
 
   @@unique([plantId, depotId], name: "unique_plant_depot")
-  @@index([plantId], name: "idx_depotplant_plantId")
-  @@index([depotId], name: "idx_depotplant_depotId")
+  @@index([plantId], map: "idx_depotplant_plantId")
+  @@index([depotId], map: "idx_depotplant_depotId")
 }
 
 model Distributor {
-  id          String   @id @default(uuid())
-  name        String
-  location    String?
-  latitude    Float?
-  longitude   Float?
-  depotId     String
-  depot       Depot     @relation(fields: [depotId], references: [id], onDelete: Cascade)
-  orders      Order[]
+  id        String  @id @default(uuid())
+  name      String
+  location  String?
+  latitude  Float?
+  longitude Float?
+  depotId   String
+  depot     Depot   @relation(fields: [depotId], references: [id], onDelete: Cascade)
+  orders    Order[]
 }
 
 model Order {
-  id             String   @id @default(uuid())
-  distributorId  String
-  distributor    Distributor @relation(fields: [distributorId], references: [id], onDelete: Cascade)
-  createdAt      DateTime  @default(now())
-  status         String    @default("Pending")
-  boxes          Box[]
+  id            String      @id @default(uuid())
+  distributorId String
+  createdAt     DateTime    @default(now())
+  status        String      @default("Pending")
+  boxes         Box[]
+  distributor   Distributor @relation(fields: [distributorId], references: [id], onDelete: Cascade)
 
-  @@index([distributorId], name: "idx_orders_distributorId")
-  @@index([status], name: "idx_orders_status")
+  @@index([distributorId], map: "idx_orders_distributorId")
+  @@index([status], map: "idx_orders_status")
 }
 
 model Box {
-  id              String   @id @default(uuid())
-  uid             String   @unique
-  plantId         String
-  plant           Plant     @relation(fields: [plantId], references: [id], onDelete: Cascade)
-  manufacturedAt  DateTime  @default(now())
-  orderId         String?   // Assigned later when scanned out for order
-  order           Order?    @relation(fields: [orderId], references: [id], onDelete: SetNull)
-  scans           Scan[]
+  id             String   @id @default(uuid())
+  uid            String   @unique
+  plantId        String
+  manufacturedAt DateTime @default(now())
+  orderId        String?
+  order          Order?   @relation(fields: [orderId], references: [id])
+  plant          Plant    @relation(fields: [plantId], references: [id], onDelete: Cascade)
+  scans          Scan[]
 
-  @@index([uid], name: "idx_boxes_uid")
-  @@index([orderId], name: "idx_boxes_orderId")
-  @@index([plantId], name: "idx_boxes_plantId")
+  @@index([uid], map: "idx_boxes_uid")
+  @@index([orderId], map: "idx_boxes_orderId")
+  @@index([plantId], map: "idx_boxes_plantId")
 }
 
 model Scan {
-  id            String   @id @default(uuid())
-  boxId         String
-  box           Box       @relation(fields: [boxId], references: [id], onDelete: Cascade)
-  employeeId    String?
-  employee      Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
-  locationType  String    // 'plant', 'depot', 'distributor'
-  locationId    String    // ID of that location
-  scanType      String    // 'in', 'out'
-  scannedAt     DateTime  @default(now())
-  latitude      Float?
-  longitude     Float?
+  id           String    @id @default(uuid())
+  boxId        String
+  employeeId   String?
+  locationType String
+  locationId   String
+  scanType     String
+  scannedAt    DateTime  @default(now())
+  latitude     Float?
+  longitude    Float?
+  box          Box       @relation(fields: [boxId], references: [id], onDelete: Cascade)
+  employee     Employee? @relation(fields: [employeeId], references: [id])
 
-  @@index([boxId], name: "idx_scans_boxId")
-  @@index([employeeId], name: "idx_scans_employeeId")
-  @@index([locationType, locationId], name: "idx_scans_locationType_locationId")
-  @@index([scannedAt], name: "idx_scans_scannedAt")
+  @@index([boxId], map: "idx_scans_boxId")
+  @@index([employeeId], map: "idx_scans_employeeId")
+  @@index([locationType, locationId], map: "idx_scans_locationType_locationId")
+  @@index([scannedAt], map: "idx_scans_scannedAt")
 }
-
