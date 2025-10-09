@@ -1,29 +1,63 @@
 "use client"
 
-import axios from "axios";
-import { useEffect, useState } from "react"
+import axios from "axios"
+import { useState } from "react"
+import { Scan } from "../constants"
 
-export default function Scan() {
 
-    const [plantData, setplantData] = useState([]);
+export default function Scann() {
 
-    const getData = async() => {
-        const result = await axios.get("http://localhost:3001/plant")
-        setplantData(result.data.data)
-        console.log(result.status);
-        console.log(result.data);
-        
+    const [boxId, setBoxId] = useState()
+    const [boxData, setBoxData] = useState<Scan[]>([])
+
+    async function getBoxData(boxId: string) {
+
+        console.log("get data called");
+
+        const result = await axios.get(`http://localhost:3001/scan/box/${boxId}`)
+
+        setBoxData(result.data.data)
+        console.log(result.data.data);
     }
 
-    useEffect(() => {
-        getData();
-    }, [])
 
-    return <div className="flex-col justify-center m-5">
-        <div className="flex items-center justify-center shadow-md rounded-2xl h-20 w-full">Box data</div>
-        <div className="p-4">
-            {/* {plantData.map(e => <h1>{e.name}</h1>)} */}
-        </div>
+    return  <div className="m-5">
+        <div className="w-full h-10 shadow-md rounded-md text-center">BOX SCAN</div>
+
+
+        <input className="border m-2 w-100" name="boxIdInput" type="text" onChange={(e) => {setBoxId(e.target.value)}} />
+        <br />
+        <button className="p-2 bg-blue-200 cursor-pointer" type="submit" onClick={() => getBoxData(boxId!)}>Submit</button>
+
+        <table>
+        <thead>
+            <tr>
+            <th>Box ID</th>
+            <th>Employee ID</th>
+            <th>Location Type</th>
+            <th>Scan Type</th>
+            <th>Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            {boxData.map(scan => (
+            <tr key={scan.id}>
+                <td>{scan.boxId}</td>
+                <td>{scan.employee?.name}</td>
+                <td>{scan.locationType}</td>
+                <td>{scan.scanType}</td>
+                <td>{new Date(scan.scannedAt).toLocaleString()}</td>
+            </tr>
+            ))}
+        </tbody>
+        </table>
+
+
+
+        {/* {JSON.stringify(boxData)} */}
+
+
+
 
     </div>
 }
