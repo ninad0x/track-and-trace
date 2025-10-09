@@ -45,31 +45,22 @@ app.post("/employee", async (req, res) => {
 
 
 // get box
-app.get("/box/:id", async (req, res) => {
+app.get("/scan/box/:id", async (req, res) => {
 
-    const id = req.query.id as string
+    const id = req.params.id
     console.log(id);
     
-
-    const data = await prismaClient.box.findFirst({
+    const data = await prismaClient.scan.findMany({
         where: {
-            uid: id
+            boxId: id
         },
         include: {
-            plant: {
-                select: { name: true, location: true }
-            },
+            employee: true
         }
     })
 
-    console.log(data);
-    
-
     res.json({
-      uid: data?.uid,
-      manufacturedAt: data?.manufacturedAt,
-      plantName: data?.plant.name,
-      plantLocation: data?.plant?.location,
+        data
     });
 })
 
@@ -127,6 +118,88 @@ app.post("/plant", async (req, res) => {
     
         res.json({
             message: "plant added",
+            data
+        })
+    } catch (error) {
+        res.json({
+            error
+        })
+    }
+})
+
+
+
+
+
+app.get("/depot", async (req, res) => {
+
+    const data = await prismaClient.depot.findMany()
+
+    res.json({
+        data
+    })
+
+})
+
+
+
+app.post("/depot", async (req, res) => {
+
+    try {
+        const { name, location, latitude, longitude} = req.body
+    
+        const data = await prismaClient.depot.create({
+            data: {
+                name: name,
+                location: location,
+                latitude: latitude,
+                longitude: longitude
+            }
+        })
+    
+        res.json({
+            message: "depot added",
+            data
+        })
+    } catch (error) {
+        res.json({
+            error
+        })
+    }
+})
+
+
+
+
+app.get("/scan/:boxId", async (req, res) => {
+    let boxId = req.params.boxId
+    const data = await prismaClient.box.findMany()
+
+    return res.json({
+        data
+    })
+})
+
+app.post("/scan", async (req, res) => {
+
+    try {
+        const { boxId, employeeId, locationType, locationId, latitude, longitude, scanType} = req.body
+    
+        const data = await prismaClient.scan.create({
+            data: {
+                boxId,
+                employeeId,
+                locationType,
+                locationId,
+                scanType,
+                latitude,
+                longitude,
+                // scannedAt: new Date()
+            } as any
+        })
+    
+        res.json({
+            message: "scan recorded",
             data
         })
     } catch (error) {
