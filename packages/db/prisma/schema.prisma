@@ -102,4 +102,5 @@ model Scan {
   @@index([employeeId], map: "idx_scans_employeeId")
   @@index([locationType, locationId], map: "idx_scans_locationType_locationId")
   @@index([scannedAt], map: "idx_scans_scannedAt")
+  @@unique([boxId, locationType, locationId, scanType, employeeId], name: "unique_box_scan_employee")
 }
