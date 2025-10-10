@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors"
 import { prismaClient } from "db/client";
 import { v4 as uuidv4 } from "uuid";
+import { validateNext } from "./utils";
 
 const app = express();
 
@@ -54,9 +55,19 @@ app.get("/scan/box/:id", async (req, res) => {
         where: {
             boxId: id
         },
-        include: {
-            employee: true
-        }
+        select: {
+            scannedAt: true,
+            locationType: true,
+            scanType: true,
+            employee: {
+                select: {
+                    name: true,
+                    role: true
+                }
+            }
+        },
+
+
     })
 
     res.json({
@@ -169,21 +180,29 @@ app.post("/depot", async (req, res) => {
 })
 
 
-
-
-app.get("/scan/:boxId", async (req, res) => {
-    let boxId = req.params.boxId
-    const data = await prismaClient.box.findMany()
-
-    return res.json({
-        data
-    })
-})
-
 app.post("/scan", async (req, res) => {
 
     try {
         const { boxId, employeeId, locationType, locationId, latitude, longitude, scanType} = req.body
+        
+        // last scan for the box
+        const lastScan = await prismaClient.scan.findFirst({
+            where: { boxId },
+            orderBy: { scannedAt: "desc" },
+        });
+
+        // if no last scan (new scan)
+        if (!lastScan && !(locationType === "plant" && scanType === "in")) {
+            return res.status(400).json({ 
+                error: "First scan must be plant-in"
+            });
+        }
+
+        const lastKey = `${lastScan?.locationType}-${lastScan?.scanType}`
+        const newKey = `${locationType}-${scanType}`
+        const allowed = validateNext[lastKey]
+
+        console.log(allowed);
     
         const data = await prismaClient.scan.create({
             data: {
@@ -194,8 +213,7 @@ app.post("/scan", async (req, res) => {
                 scanType,
                 latitude,
                 longitude,
-                // scannedAt: new Date()
-            } as any
+            }
         })
     
         res.json({
