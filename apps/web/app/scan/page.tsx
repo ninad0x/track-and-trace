@@ -24,29 +24,29 @@ export default function Scann() {
     return  <div className="m-5">
         <div className="w-full h-10 shadow-md rounded-md text-center">BOX SCAN</div>
 
-
+        Enter box Id
         <input className="border m-2 w-100" name="boxIdInput" type="text" onChange={(e) => {setBoxId(e.target.value)}} />
         <br />
         <button className="p-2 bg-blue-200 cursor-pointer" type="submit" onClick={() => getBoxData(boxId!)}>Submit</button>
 
-        <table>
-        <thead>
+        <table className="w-full my-2">
+        <thead className="bg-red-200">
             <tr>
-            <th>Box ID</th>
-            <th>Employee ID</th>
+            <th>Employee</th>
             <th>Location Type</th>
             <th>Scan Type</th>
+            <th>Date</th>
             <th>Time</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody className="bg-green-200 text-center">
             {boxData.map(scan => (
-            <tr key={scan.id}>
-                <td>{scan.boxId}</td>
+            <tr key={scan.scannedAt}>
                 <td>{scan.employee?.name}</td>
                 <td>{scan.locationType}</td>
                 <td>{scan.scanType}</td>
-                <td>{new Date(scan.scannedAt).toLocaleString()}</td>
+                <td>{new Date(scan.scannedAt).toLocaleDateString()}</td>
+                <td>{new Date(scan.scannedAt).toLocaleTimeString()}</td>
             </tr>
             ))}
         </tbody>
