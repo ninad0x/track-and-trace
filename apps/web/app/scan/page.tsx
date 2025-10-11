@@ -14,7 +14,7 @@ export default function Scann() {
 
         console.log("get data called");
 
-        const result = await axios.get(`http://localhost:3001/scan/box/${boxId}`)
+        const result = await axios.get(`http://localhost:3001/admin/scan/${boxId}`)
 
         setBoxData(result.data.data)
         console.log(result.data.data);
